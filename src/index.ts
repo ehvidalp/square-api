@@ -1,12 +1,9 @@
 import express, { Request, Response } from 'express';
 import { envs } from './config/envs';
-import { db } from '../firebaseConfig';
-import * as admin from 'firebase-admin'; // Asegúrate de importar Firebase Admin SDK 
-import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebaseConfig'; 
 
 const app = express();
 const port = envs.port;
-const dbTask = admin.firestore(); 
 
 app.use(express.json());
 
@@ -97,27 +94,51 @@ app.post('/tasks', async (req: Request, res: Response) => {
   
 });
 
-app.put('/tasks/:taskId', async (req: Request, res: Response) => {
-  const taskId = req.params.taskId;
-  const updatedTaskData = req.body; 
+app.put('/tasks/:id', async (req: Request, res: Response) => {
+  const taskId = req.params.id;
+  const { title, description, created_at, completed, email } = req.body;
 
   try {
-    const taskRef = doc(dbTask, 'tasks', taskId); // Referencia al documento de la tarea
+    if (!taskId) return res.status(400).send('Task ID is required');
+    if (!title) return res.status(400).send('Title is required');
 
-    // Verificar si la tarea existe (opcional pero recomendado)
+    const taskRef = db.collection('tasks').doc(taskId);
     const taskSnapshot = await taskRef.get();
-    if (!taskSnapshot.exists()) {
-      return res.status(404).send('Tarea no encontrada');
+
+    if (!taskSnapshot.exists) {
+      res.status(404).json({ message: 'Task not found' });
+      return;
     }
 
-    await updateDoc(taskRef, updatedTaskData);
-    res.send('Tarea actualizada correctamente');
+    await taskRef.update({ title, description, created_at, completed, email });
+    res.status(200).json({ message: 'Task updated' });
   } catch (error) {
-    console.error('Error al actualizar la tarea:', error);
-    res.status(500).send('Error interno del servidor');
+    console.error('Error updating task:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
+app.delete('/tasks/:id', async (req: Request, res: Response) => {
+  const taskId = req.params.id;
+
+  try {
+    if (!taskId) return res.status(400).send('Task ID is required');
+
+    const taskRef = db.collection('tasks').doc(taskId);
+    const taskSnapshot = await taskRef.get();
+
+    if (!taskSnapshot.exists) {
+      res.status(404).json({ message: 'Task not found' });
+      return;
+    }
+
+    await taskRef.delete();
+    res.status(200).json({ message: 'Task deleted' });
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
