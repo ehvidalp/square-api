@@ -1,6 +1,6 @@
 # Compiled JavaScript files
-lib/**/*.js
-lib/**/*.js.map
+functions/lib/**/*.js
+functions/lib/**/*.js.map
 
 # TypeScript v1 declaration files
 typings/
@@ -10,4 +10,4 @@ node_modules/
 *.local
 
 # Ignore all files in the key directory
-key/
+keys/
