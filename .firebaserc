@@ -1,0 +1,12 @@
+{
+  "projects": {
+    "default": "square-tasks"
+  },
+  "targets": {},
+  "etags": {
+    "square-tasks": {
+      "extensionInstances": {}
+    }
+  },
+  "dataconnectEmulatorConfig": {}
+}
